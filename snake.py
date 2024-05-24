@@ -7,7 +7,7 @@ from game_controller import HumanController
 
 
 class SnakeGame:
-    def __init__(self, xsize: int = 30, ysize: int = 30, scale: int = 15):
+    def __init__(self, xsize: int = 15, ysize: int = 10, scale: int = 15):
         self.grid = Vector(xsize, ysize)
         self.scale = scale
         self.snake = Snake(game=self)
@@ -15,20 +15,24 @@ class SnakeGame:
         self.running = True
 
     def run(self):
-        running = True
-        while running:
+
+        while self.running:
             next_move = self.controller.update()
+
+            if self.controller.steps >= 1000:
+                message = "Number of moves exceeded."
+                self.running = False
             if next_move:
                 self.snake.v = next_move
-            self.snake.move()
+                self.snake.move()
             if not self.snake.p.within(self.grid):
-                running = False
                 self.running = False
                 message = "Game over! You crashed into the wall!"
+
             if self.snake.cross_own_tail:
-                running = False
                 self.running = False
                 message = "Game over! You hit your own tail!"
+
             if self.snake.p == self.food.p:
                 self.snake.add_score()
                 self.food = Food(game=self)

@@ -20,8 +20,8 @@ class GAController(GameController):
             self.color_snake_head = (0, 255, 0)
             self.color_food = (255, 0, 0)
         self.action_space = (
-            Vector(0, -1),
             Vector(0, 1),
+            Vector(0, -1),
             Vector(1, 0),
             Vector(-1, 0),
         )
@@ -33,7 +33,8 @@ class GAController(GameController):
 
     @property
     def fitness(self) -> float:
-        return self.score / (np.log(self.steps))
+        score = self.score * 100 if self.score >= 1 else 0
+        return score / (np.log(self.steps + 1)) - 0.01 * self.steps
 
     def update(self) -> Vector:
 
@@ -45,11 +46,18 @@ class GAController(GameController):
         dfx = self.game.snake.p.x - self.game.food.p.x
         dfy = self.game.snake.p.y - self.game.food.p.y
 
+        # Calculate normalized Euclidean distance to the food
+        df = np.sqrt(
+            (self.game.snake.p.x - self.game.food.p.x) ** 2
+            + (self.game.snake.p.y - self.game.food.p.y) ** 2
+        )
+
         s = self.game.snake.score
 
-        obs = (dn, de, ds, dw, dfx, dfy, s)
+        obs = (dn, de, ds, dw, dfx, dfy, df, s)
 
-        next_move = self.action_space[self.model.action(obs)]
+        action = self.model.action(obs)
+        next_move = self.action_space[action]
 
         if self.display:
             self.screen.fill("black")
