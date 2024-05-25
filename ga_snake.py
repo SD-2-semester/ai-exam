@@ -4,9 +4,9 @@ from ga_model import SimpleModel
 
 if __name__ == "__main__":
 
-    generations = 100
-    population_size = 10000
-    snake_population = [SimpleModel(dims=(14, 7, 4)) for _ in range(population_size)]
+    generations = 1000
+    population_size = 100
+    snake_population = [SimpleModel(dims=(14, 4)) for _ in range(population_size)]
     high_score = 0
     genration_highscore = 0
     snake_highscore = SimpleModel(dims=(9, 2, 3))
@@ -54,8 +54,8 @@ if __name__ == "__main__":
             )
             child1 = parent1 + parent2
             child2 = parent2 + parent1
-            child1.mutate(0.2)
-            child2.mutate(0.2)
+            # child1.mutate(0.2)
+            # child2.mutate(0.2)
             new_population.extend([child1, child2])
 
         # Ensure the new population is the same size as the original

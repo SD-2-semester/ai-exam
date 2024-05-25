@@ -7,7 +7,7 @@ from game_controller import HumanController
 
 
 class SnakeGame:
-    def __init__(self, xsize: int = 30, ysize: int = 30, scale: int = 15):
+    def __init__(self, xsize: int = 15, ysize: int = 10, scale: int = 15):
         self.grid = Vector(xsize, ysize)
         self.scale = scale
         self.snake = Snake(game=self)

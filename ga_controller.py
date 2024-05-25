@@ -54,13 +54,12 @@ class GAController(GameController):
             )  # Positive if moving down, negative if up
         else:
             direction_x, direction_y = 0, 0  # No movement if snake has only one segment
-            
 
         # Distance to wall
         distance_north_snake_wall = self.game.snake.p.y
         distance_east_snake_wall = self.game.grid.x - self.game.snake.p.x
         distance_south_snake_wall = self.game.grid.y - self.game.snake.p.y
-        distance_east_snake_wall = self.game.snake.p.x
+        distance_west_snake_wall = self.game.snake.p.x
 
         distance_snake_food_x = self.game.snake.p.x - self.game.food.p.x
         distance_snake_food_y = self.game.snake.p.y - self.game.food.p.y
@@ -74,22 +73,64 @@ class GAController(GameController):
         # Score
         score = self.game.snake.score
 
-        # Observations
+        # Normalize position of snake and food
+        normalized_position_snake_x = self.normalize(position_snake.x, self.game.grid.x)
+        normalized_position_snake_y = self.normalize(position_snake.y, self.game.grid.y)
+        normalized_position_food_x = self.normalize(position_food.x, self.game.grid.x)
+        normalized_position_food_y = self.normalize(position_food.y, self.game.grid.y)
+
+        # Normalize distances to walls
+        normalized_distance_north_snake_wall = self.normalize(
+            distance_north_snake_wall, self.game.grid.y
+        )
+        normalized_distance_south_snake_wall = self.normalize(
+            distance_south_snake_wall, self.game.grid.y
+        )
+        normalized_distance_east_snake_wall = self.normalize(
+            distance_east_snake_wall, self.game.grid.x
+        )
+        normalized_distance_west_snake_wall = self.normalize(
+            distance_west_snake_wall, self.game.grid.x
+        )
+
+        # Normalize distances between snake and food
+        normalized_distance_snake_food_x = self.normalize(
+            abs(distance_snake_food_x), self.game.grid.x
+        )
+        normalized_distance_snake_food_y = self.normalize(
+            abs(distance_snake_food_y), self.game.grid.y
+        )
+
+        # Normalize Euclidean distance
+        max_distance = np.sqrt(self.game.grid.x**2 + self.game.grid.y**2)
+        normalized_distance_euclidean_food = self.normalize(
+            distance_euclidean_food, max_distance
+        )
+
+        # Assuming direction can be -1, 0, or 1, it's already normalized to a degree, but let's scale it to [0, 1]
+        normalized_direction_x = (direction_x + 1) / 2
+        normalized_direction_y = (direction_y + 1) / 2
+
+        # Normalize score if there's a known max score, otherwise, it can be scaled by some large number or average score expected
+        max_score = 100  # Example max score, adjust based on game specifics
+        normalized_score = self.normalize(score, max_score)
+
+        # Recreate the observation tuple with normalized values
         obs = (
-            position_snake.x,
-            position_snake.y,
-            direction_x,
-            direction_y,
-            position_food.x,
-            position_food.y,
-            distance_north_snake_wall,
-            distance_east_snake_wall,
-            distance_south_snake_wall,
-            distance_east_snake_wall,
-            distance_snake_food_x,
-            distance_snake_food_y,
-            distance_euclidean_food,
-            score,
+            normalized_position_snake_x,
+            normalized_position_snake_y,
+            normalized_direction_x,
+            normalized_direction_y,
+            normalized_position_food_x,
+            normalized_position_food_y,
+            normalized_distance_north_snake_wall,
+            normalized_distance_south_snake_wall,
+            normalized_distance_east_snake_wall,
+            normalized_distance_west_snake_wall,
+            normalized_distance_snake_food_x,
+            normalized_distance_snake_food_y,
+            normalized_distance_euclidean_food,
+            normalized_score,
         )
 
         action = self.model.action(obs)
@@ -125,3 +166,6 @@ class GAController(GameController):
     def __del__(self):
         if self.display:
             pygame.quit()
+
+    def normalize(self, value, max_value):
+        return value / max_value
