@@ -36,7 +36,7 @@ class SnakeGame:
             if self.snake.p == self.food.p:
                 self.snake.add_score()
                 self.food = Food(game=self)
-        print(f"{message} ... Score: {self.snake.score}")
+        # sprint(f"{message} ... Score: {self.snake.score}")
 
 
 class Food:

@@ -43,18 +43,34 @@ class GAController(GameController):
         ds = self.game.grid.y - self.game.snake.p.y
         dw = self.game.snake.p.x
 
+        # normalized
+
+        dn = dn / self.game.grid.y
+        de = de / self.game.grid.x
+        ds = ds / self.game.grid.y
+        dw = dw / self.game.grid.x
+
         dfx = self.game.snake.p.x - self.game.food.p.x
         dfy = self.game.snake.p.y - self.game.food.p.y
 
-        # Calculate normalized Euclidean distance to the food
+        # normalized
+
+        dfx = dfx / self.game.grid.x
+        dfy = dfy / self.game.grid.y
+
         df = np.sqrt(
             (self.game.snake.p.x - self.game.food.p.x) ** 2
             + (self.game.snake.p.y - self.game.food.p.y) ** 2
         )
 
+        # normalized
+
+        df = df / np.sqrt(self.game.grid.x**2 + self.game.grid.y**2)
+
         s = self.game.snake.score
 
         obs = (dn, de, ds, dw, dfx, dfy, df, s)
+        # print(obs)
 
         action = self.model.action(obs)
         next_move = self.action_space[action]
@@ -72,6 +88,7 @@ class GAController(GameController):
             self.clock.tick(10)
 
         self.steps += 1
+        self.model.set_fitness(self.fitness)
         return next_move
 
     @property

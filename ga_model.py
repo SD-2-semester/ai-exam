@@ -26,6 +26,7 @@ class SimpleModel:
     def __init__(self, *, dims: tuple[int, ...]):
         self.dims = dims
         self.DNA = []
+        self._fitness = 0
         for i, dim in enumerate(dims):
             if i < len(dims) - 1:
                 self.DNA.append(np.random.rand(dim, dims[i + 1]))
@@ -52,7 +53,25 @@ class SimpleModel:
             col = random.randint(0, self.DNA[random_layer].shape[1] - 1)
             self.DNA[random_layer][row][col] = random.uniform(-1, 1)
 
-    def selection(self) -> None: ...
+    def fitness(self):
+        return self._fitness
+
+    def set_fitness(self, fitness):
+        self._fitness = fitness
+
+    # @classmethod
+    # def copulate(cls, parents: tuple["SimpleModel", "SimpleModel"]):
+    #     baby_DNA = []
+    #     for p1, p2 in zip(parents[0].DNA, parents[1].DNA):
+    #         baby_layer = np.empty(p1.shape)
+    #         for i in range(len(p1)):
+    #             baby_gene = np.random.choice([p1[i], p2[i]])
+    #             baby_layer[i] = baby_gene
+    #         baby_DNA.append(baby_layer)
+    #     baby = cls(dims=parents[0].dims)
+
+    #     baby.DNA = baby_DNA
+    #     return baby
 
     def __add__(self, other: "SimpleModel"):
         baby_snake_DNA = []
@@ -69,6 +88,12 @@ class SimpleModel:
         baby = type(self)(dims=self.dims)
         baby.DNA = baby_snake_DNA
         return baby
+
+    def __lt__(self, other: "SimpleModel"):
+        return self.fitness() < other.fitness()
+
+    def __eq__(self, other: "SimpleModel") -> bool:
+        return self.fitness() == other.fitness()
 
     def get_shapes(self):
         # Returns a list of shapes of the arrays in self.DNA
