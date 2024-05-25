@@ -38,23 +38,59 @@ class GAController(GameController):
 
     def update(self) -> Vector:
 
-        dn = self.game.snake.p.y
-        de = self.game.grid.x - self.game.snake.p.x
-        ds = self.game.grid.y - self.game.snake.p.y
-        dw = self.game.snake.p.x
+        # Positions
+        position_snake = self.game.snake.body[0]
+        position_food = self.game.food.p
 
-        dfx = self.game.snake.p.x - self.game.food.p.x
-        dfy = self.game.snake.p.y - self.game.food.p.y
+        # Calculate snake direction
+        if len(self.game.snake.body) > 1:
+            head_pos = self.game.snake.body[0]
+            next_pos = self.game.snake.body[1]
+            direction_x = (
+                head_pos.x - next_pos.x
+            )  # Positive if moving right, negative if left
+            direction_y = (
+                head_pos.y - next_pos.y
+            )  # Positive if moving down, negative if up
+        else:
+            direction_x, direction_y = 0, 0  # No movement if snake has only one segment
+            
 
-        # Calculate normalized Euclidean distance to the food
-        df = np.sqrt(
+        # Distance to wall
+        distance_north_snake_wall = self.game.snake.p.y
+        distance_east_snake_wall = self.game.grid.x - self.game.snake.p.x
+        distance_south_snake_wall = self.game.grid.y - self.game.snake.p.y
+        distance_east_snake_wall = self.game.snake.p.x
+
+        distance_snake_food_x = self.game.snake.p.x - self.game.food.p.x
+        distance_snake_food_y = self.game.snake.p.y - self.game.food.p.y
+
+        # Calculate Euclidean distance to the food
+        distance_euclidean_food = np.sqrt(
             (self.game.snake.p.x - self.game.food.p.x) ** 2
             + (self.game.snake.p.y - self.game.food.p.y) ** 2
         )
 
-        s = self.game.snake.score
+        # Score
+        score = self.game.snake.score
 
-        obs = (dn, de, ds, dw, dfx, dfy, df, s)
+        # Observations
+        obs = (
+            position_snake.x,
+            position_snake.y,
+            direction_x,
+            direction_y,
+            position_food.x,
+            position_food.y,
+            distance_north_snake_wall,
+            distance_east_snake_wall,
+            distance_south_snake_wall,
+            distance_east_snake_wall,
+            distance_snake_food_x,
+            distance_snake_food_y,
+            distance_euclidean_food,
+            score,
+        )
 
         action = self.model.action(obs)
         next_move = self.action_space[action]

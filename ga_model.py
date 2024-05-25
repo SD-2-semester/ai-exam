@@ -32,11 +32,13 @@ class SimpleModel:
 
     def update(self, obs):
         x = obs
+        # print("before", x)
         for i, layer in enumerate(self.DNA):
             if not i == 0:
                 x = tanh(x)
+            # print(layer)
             x = x @ layer
-
+        # print("after", x)
         soft_max = softmax(x)
         return soft_max
 
@@ -59,12 +61,13 @@ class SimpleModel:
 
         for i in range(len(self.DNA)):
             baby_dna_layer = np.empty(self.DNA[i].shape)
-            for k in range(len(self.DNA[i])):
-                self_dna_layer = np.array(self.DNA[i][k])
-                other_dna_layer = np.array(other.DNA[i][k])
+            for j in range(len(self.DNA[i])):
+                self_dna_layer = np.array(self.DNA[i][j])
+                other_dna_layer = np.array(other.DNA[i][j])
                 rand_mask = np.random.rand(*self_dna_layer.shape) > 0.5
+                print(rand_mask)
                 baby_dna_gene = np.where(rand_mask, self_dna_layer, other_dna_layer)
-                baby_dna_layer[k] = baby_dna_gene
+                baby_dna_layer[j] = baby_dna_gene
             baby_snake_DNA.append(baby_dna_layer)
         baby = type(self)(dims=self.dims)
         baby.DNA = baby_snake_DNA

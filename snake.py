@@ -7,7 +7,7 @@ from game_controller import HumanController
 
 
 class SnakeGame:
-    def __init__(self, xsize: int = 15, ysize: int = 10, scale: int = 15):
+    def __init__(self, xsize: int = 30, ysize: int = 30, scale: int = 15):
         self.grid = Vector(xsize, ysize)
         self.scale = scale
         self.snake = Snake(game=self)
@@ -26,10 +26,12 @@ class SnakeGame:
                 self.snake.v = next_move
                 self.snake.move()
             if not self.snake.p.within(self.grid):
+                self.snake.remove_score()
                 self.running = False
                 message = "Game over! You crashed into the wall!"
 
             if self.snake.cross_own_tail:
+                self.snake.remove_score()
                 self.running = False
                 message = "Game over! You hit your own tail!"
 
@@ -78,6 +80,10 @@ class Snake:
         tail = self.body.pop()
         self.body.append(tail)
         self.body.append(tail)
+    
+    def remove_score(self):
+        self.score -= 100
+
 
     def debug(self):
         print("===")

@@ -4,11 +4,9 @@ from ga_model import SimpleModel
 
 if __name__ == "__main__":
 
-    generations = 10000
-    population_size = 500
-    snake_population = [
-        SimpleModel(dims=(8, 7, 16, 15, 3)) for _ in range(population_size)
-    ]
+    generations = 100
+    population_size = 10000
+    snake_population = [SimpleModel(dims=(14, 7, 4)) for _ in range(population_size)]
     high_score = 0
     genration_highscore = 0
     snake_highscore = SimpleModel(dims=(9, 2, 3))
@@ -24,7 +22,7 @@ if __name__ == "__main__":
             print("snake number: ", snake_number)
             game = SnakeGame()
 
-            controller = GAController(game, snake, display=False)
+            controller = GAController(game, snake, display=True)
 
             game.run()
             print(f"snake fitnes:{controller.fitness} and score: {controller.score}")
@@ -38,7 +36,7 @@ if __name__ == "__main__":
             result_generation.append((controller.fitness, snake))
 
         # Sort results by fitness in descending order
-        result_generation.sort(key=lambda x: x[0], reverse=True)
+        result_generation.sort(key=lambda x: x[0], reverse=False)
 
         # Select the top 50% of the results
         top_half_population = [
