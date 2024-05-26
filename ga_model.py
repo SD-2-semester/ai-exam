@@ -27,21 +27,23 @@ class SimpleModel:
     def __init__(self, *, dims: tuple[int, ...]):
         self.dims = dims
         self.DNA = []
+        self.biases = []
         for i, dim in enumerate(dims):
             if i < len(dims) - 1:
-                self.DNA.append(np.random.rand(dim, dims[i + 1]))
+                self.DNA.append(
+                    np.random.uniform(low=-1, high=1, size=(dim, dims[i + 1]))
+                )
+                self.biases.append(np.zeros(dims[i + 1]))  # Initialize biases to zero
 
     def update(self, obs):
         x = obs
-        # print("before", x)
-        for i, layer in enumerate(self.DNA):
-            if not i == 0:
-                x = tanh(x)
-            # print(layer)
-            x = x @ layer
-        # print("after", x)
-        soft_max = softmax(x)
-        return soft_max
+        for i, (layer, bias) in enumerate(zip(self.DNA, self.biases)):
+            x = x @ layer + bias  # Apply weights and add bias
+            if (
+                i < len(self.DNA) - 1
+            ):  # Apply activation function to all but the last layer
+                x = relu(x)
+        return softmax(x)  # Apply softmax to the output layer
 
     def action(self, obs):
         action = self.update(obs)
@@ -51,14 +53,18 @@ class SimpleModel:
     def mutate(self, mutation_rate, intensity) -> None:
         if random.random() < mutation_rate:
             for i in range(len(self.DNA)):
-                mutant_dna_layer = np.empty(self.DNA[i].shape)
-                for j in range(len(self.DNA[i])):
-                    self_dna_layer = np.array(self.DNA[i][j])
-                    rand_dna_layer = np.random.rand(*self_dna_layer.shape)
-                    rand_mask = np.random.rand(*self_dna_layer.shape) > intensity
-                    new_dna_layer = np.where(rand_mask, self_dna_layer, rand_dna_layer)
-                    mutant_dna_layer[j] = new_dna_layer
-                self.DNA[i] = mutant_dna_layer
+                # Mutate weights
+                self_dna_layer = self.DNA[i]
+                rand_dna_layer = np.random.rand(*self_dna_layer.shape)
+                rand_mask = np.random.rand(*self_dna_layer.shape) > intensity
+                self.DNA[i] = np.where(rand_mask, self_dna_layer, rand_dna_layer)
+                # Mutate biases
+                self_bias_layer = self.biases[i]
+                rand_bias_layer = np.random.rand(*self_bias_layer.shape)
+                rand_bias_mask = np.random.rand(*self_bias_layer.shape) > intensity
+                self.biases[i] = np.where(
+                    rand_bias_mask, self_bias_layer, rand_bias_layer
+                )
             print("mutation done.")
 
     def __add__(self, other: "SimpleModel"):

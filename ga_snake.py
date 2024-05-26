@@ -4,14 +4,15 @@ from ga_model import SimpleModel
 
 if __name__ == "__main__":
 
-    generations = 100
+    generations = 500
     population_size = 50
     snake_population = [
-        SimpleModel(dims=(9, 64, 32, 4)) for _ in range(population_size)
+        SimpleModel(dims=(10, 32, 32, 4)) for _ in range(population_size)
     ]
     high_score = 0
     genration_highscore = 0
     snake_highscore = SimpleModel(dims=(9, 2, 3))
+    display = False
 
     for generation in range(generations):
         snake_number = 0
@@ -24,7 +25,10 @@ if __name__ == "__main__":
             print("snake number: ", snake_number)
             game = SnakeGame()
 
-            controller = GAController(game, snake, display=False)
+            if generation > 400:
+                display = True
+
+            controller = GAController(game, snake, display=display)
 
             game.run()
             print(f"snake fitnes:{controller.fitness} and score: {controller.score}")

@@ -40,16 +40,15 @@ class GAController(GameController):
     @property
     def fitness(self) -> float:
         score = self.score * 100 if self.score >= 1 else 0
-        return score  # / (np.log(self.steps + 1)) - 0.01 * self.steps
+        return score / (np.log(self.steps + 1)) - 0.01 * self.steps
 
     def update(self) -> Vector:
 
         # Positions
-        position_snake = self.game.snake.p
+        snake_body = self.game.snake.body
         position_food = self.game.food.p
 
         # Calculate snake direction
-
         head_pos = self.game.snake.body[0]
         next_pos = self.game.snake.body[1]
         direction_x = (
@@ -60,90 +59,27 @@ class GAController(GameController):
         normalized_direction_x = 1 if direction_x > 0 else 0
         normalized_direction_y = 1 if direction_y > 0 else 0
 
-        # Distance to wall
-        distance_north_snake_wall = self.game.snake.p.y
-        distance_east_snake_wall = self.game.grid.x - self.game.snake.p.x
-        distance_south_snake_wall = self.game.grid.y - self.game.snake.p.y
-        distance_west_snake_wall = self.game.snake.p.x
+        # print(self.update_observations(self.game.snake, self.game.food, self.game.grid))
 
-        distance_snake_food_x = self.game.snake.p.x - self.game.food.p.x
-        distance_snake_food_y = self.game.snake.p.y - self.game.food.p.y
-
-        # Calculate Euclidean distance to the food
-        distance_euclidean_food = np.sqrt(
-            (self.game.snake.p.x - self.game.food.p.x) ** 2
-            + (self.game.snake.p.y - self.game.food.p.y) ** 2
+        obs_dict = self.update_observations(
+            self.game.snake, self.game.food, self.game.grid
         )
-
-        # Score
-        score = np.log(self.game.snake.score + 1)
-
-        # Normalize position of snake and food
-        normalized_position_snake_x = self.normalize(position_snake.x, self.game.grid.x)
-        normalized_position_snake_y = self.normalize(position_snake.y, self.game.grid.y)
-        normalized_position_food_x = self.normalize(position_food.x, self.game.grid.x)
-        normalized_position_food_y = self.normalize(position_food.y, self.game.grid.y)
-
-        # Normalize distances to walls
-        normalized_distance_north_snake_wall = self.normalize(
-            distance_north_snake_wall, self.game.grid.y
-        )
-        normalized_distance_south_snake_wall = self.normalize(
-            distance_south_snake_wall, self.game.grid.y
-        )
-        normalized_distance_east_snake_wall = self.normalize(
-            distance_east_snake_wall, self.game.grid.x
-        )
-        normalized_distance_west_snake_wall = self.normalize(
-            distance_west_snake_wall, self.game.grid.x
-        )
-
-        # Normalize distances between snake and food
-        normalized_distance_snake_food_x = self.normalize(
-            abs(distance_snake_food_x), self.game.grid.x
-        )
-        normalized_distance_snake_food_y = self.normalize(
-            abs(distance_snake_food_y), self.game.grid.y
-        )
-
-        # Normalize Euclidean distance
-        max_distance = np.sqrt(self.game.grid.x**2 + self.game.grid.y**2)
-        normalized_distance_euclidean_food = self.normalize(
-            distance_euclidean_food, max_distance
-        )
-
-        # Normalize score if there's a known max score, otherwise, it can be scaled by some large number or average score expected
-        max_score = 100  # Example max score, adjust based on game specifics
-
-        (
-            angle,
-            snake_direction_vector,
-            apple_direction_vector_normalized,
-            snake_direction_vector_normalized,
-        ) = self.angle_with_apple(
-            snake_position=self.game.snake.p,
-            apple_position=[position_food.x, position_food.y],
-        )
-        # Recreate the observation tuple with normalized values
         obs = (
-            # normalized_position_snake_x,
-            # normalized_position_snake_y,
-            normalized_direction_x,
-            normalized_direction_y,
-            # normalized_position_food_x,
-            # normalized_position_food_y,
-            normalized_distance_north_snake_wall,
-            normalized_distance_south_snake_wall,
-            normalized_distance_east_snake_wall,
-            normalized_distance_west_snake_wall,
-            # normalized_distance_snake_food_x,
-            # normalized_distance_snake_food_y,
-            # normalized_distance_euclidean_food,
-            score,
-            # angle,
-            apple_direction_vector_normalized[0],
-            apple_direction_vector_normalized[1],
+            # normalized_direction_x,
+            # normalized_direction_y,
+            obs_dict["danger_up"],
+            obs_dict["danger_down"],
+            obs_dict["danger_left"],
+            obs_dict["danger_right"],
+            obs_dict["food_distance"],
+            obs_dict["food_angle"],
+            obs_dict["distance_to_left_wall"],
+            obs_dict["distance_to_right_wall"],
+            obs_dict["distance_to_top_wall"],
+            obs_dict["distance_to_bottom_wall"],
         )
+        # print(obs)
+
         action = self.model.action(obs)
         next_move = self.action_space[action]
         try:
@@ -185,53 +121,67 @@ class GAController(GameController):
     def normalize(self, value, max_value):
         return value / max_value
 
-    # Function to evaluate angle between apple and snake.
-    def angle_with_apple(self, snake_position, apple_position):
-
-        apple_direction_vector = np.array(apple_position) - np.array(
-            [snake_position.x, snake_position.y]
+    def calculate_relative_food_position(self, snake_head, food_position):
+        vector_to_food = np.array(
+            [food_position.x - snake_head.x, food_position.y - snake_head.y]
         )
-        snake_direction_vector = np.array(  # not working nnot being used
-            [
-                snake_position.x,
-                snake_position.y,
-            ]
-        ) - np.array(
-            [
-                snake_position.x,
-                snake_position.y,
-            ]
-        )
-
-        norm_of_apple_direction_vector = np.linalg.norm(apple_direction_vector)
-        norm_of_snake_direction_vector = np.linalg.norm(snake_direction_vector)
-        if norm_of_apple_direction_vector == 0:
-            norm_of_apple_direction_vector = 10
-        if norm_of_snake_direction_vector == 0:
-            norm_of_snake_direction_vector = 10
-
-        apple_direction_vector_normalized = (
-            apple_direction_vector / norm_of_apple_direction_vector
-        )
-        snake_direction_vector_normalized = (
-            snake_direction_vector / norm_of_snake_direction_vector
-        )
-        angle = (
-            math.atan2(
-                apple_direction_vector_normalized[1]
-                * snake_direction_vector_normalized[0]
-                - apple_direction_vector_normalized[0]
-                * snake_direction_vector_normalized[1],
-                apple_direction_vector_normalized[1]
-                * snake_direction_vector_normalized[0]
-                + apple_direction_vector_normalized[0]
-                * snake_direction_vector_normalized[1],
-            )
-            / math.pi
-        )
+        distance = np.linalg.norm(vector_to_food)
+        angle = np.arctan2(vector_to_food[1], vector_to_food[0])
         return (
-            angle,
-            snake_direction_vector,
-            apple_direction_vector_normalized,
-            snake_direction_vector_normalized,
-        )
+            distance / np.sqrt(self.game.grid.x**2 + self.game.grid.y**2),
+            angle / np.pi,
+        )  # Normalized
+
+    def check_directional_danger(self, snake, direction, grid_size):
+        head_x, head_y = snake.body[0].x, snake.body[0].y
+        next_position = {
+            "up": (head_x, head_y - 1),
+            "down": (head_x, head_y + 1),
+            "left": (head_x - 1, head_y),
+            "right": (head_x + 1, head_y),
+        }
+        next_x, next_y = next_position[direction]
+
+        # Check wall collisions
+        if next_x < 0 or next_x >= grid_size.x or next_y < 0 or next_y >= grid_size.y:
+            return 1  # Danger
+
+        # Check self collisions
+        if (next_x, next_y) in [
+            (s.x, s.y) for s in list(snake.body)[1:]
+        ]:  # Exclude the head in comparison
+            return 1  # Danger
+
+        return 0  # No danger
+
+    def calculate_wall_distance(self, snake_head, grid_size):
+        distances = {
+            "distance_to_left_wall": snake_head.x,
+            "distance_to_right_wall": grid_size.x - snake_head.x - 1,
+            "distance_to_top_wall": snake_head.y,
+            "distance_to_bottom_wall": grid_size.y - snake_head.y - 1,
+        }
+        # Normalize distances
+        for key in distances:
+            distances[key] /= max(grid_size.x, grid_size.y)
+        return distances
+
+    def update_observations(self, snake, food, grid_size):
+        obs = {}
+        directions = ["up", "down", "left", "right"]
+
+        # Danger checks
+        for direction in directions:
+            obs[f"danger_{direction}"] = self.check_directional_danger(
+                snake, direction, grid_size
+            )
+
+        # Food relative position
+        distance, angle = self.calculate_relative_food_position(snake.body[0], food.p)
+        obs["food_distance"] = distance
+        obs["food_angle"] = angle
+
+        # Wall proximity
+        obs.update(self.calculate_wall_distance(snake.body[0], grid_size))
+
+        return obs

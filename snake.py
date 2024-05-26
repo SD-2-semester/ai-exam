@@ -20,14 +20,16 @@ class SnakeGame:
 
             if self.controller.steps >= 1000:
                 message = "Number of moves exceeded."
-                self.snake.score = -1000 if self.snake.score < 1 else self.snake.score
+                self.snake.score -= 10000000 if self.snake.score < 1 else self.snake.score
                 self.running = False
+         
+
             if next_move:
                 if self.snake.v != next_move:
-                    print("added score")
                     self.snake.score += 1
                 self.snake.v = next_move
                 self.snake.move()
+
             if not self.snake.p.within(self.grid):
                 self.snake.remove_score()
                 self.running = False

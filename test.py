@@ -24,8 +24,13 @@ data = [
 data_m = [11, 12, 2, 1, 12, 11, 18, 11, 9, 11, 14.212670403551895, 0]
 
 # Create the array
-array1 = np.array(data_m)
-array2 = np.array(data)
+array1 = np.array([0.66710536, 1.13685851])
+array2 = np.array(
+    [
+        [0.24289152, 0.27146975, 0.20007039, 0.52258094],
+        [0.6380638, 0.02045426, 0.39095076, 0.50719153],
+    ]
+)
 
 test = array1 @ array2
 print("Array Shape:", array1.shape)
