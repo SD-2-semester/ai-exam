@@ -75,6 +75,38 @@ class Snake:
             return False
 
     @property
+    def tail_collision_right(self) -> float:
+        for i in range(self.p.x + 1, self.game.grid.x):
+            vector = Vector(i, 0)
+            if self.p + vector in self.body:
+                return i / self.game.grid.x
+        return 1
+
+    @property
+    def tail_collision_left(self) -> float:
+        for i in range(self.p.x - 1, 0, -1):
+            vector = Vector(i, 0)
+            if self.p + vector in self.body:
+                return i / self.game.grid.x
+        return 1
+
+    @property
+    def tail_collision_up(self) -> float:
+        for i in range(self.p.y - 1, 0, -1):
+            vector = Vector(0, i)
+            if self.p + vector in self.body:
+                return i / self.game.grid.y
+        return 1
+
+    @property
+    def tail_collision_down(self) -> float:
+        for i in range(self.p.y + 1, self.game.grid.y):
+            vector = Vector(0, i)
+            if self.p + vector in self.body:
+                return i / self.game.grid.y
+        return 1
+
+    @property
     def p(self):
         return self.body[0]
 

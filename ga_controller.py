@@ -83,6 +83,10 @@ class GAController(GameController):
             obs_dict["distance_to_right_wall"],
             obs_dict["distance_to_top_wall"],
             obs_dict["distance_to_bottom_wall"],
+            obs_dict["tail_collision_right"],
+            obs_dict["tail_collision_left"],
+            obs_dict["tail_collision_up"],
+            obs_dict["tail_collision_down"],
         )
         # print(obs)
 
@@ -189,5 +193,11 @@ class GAController(GameController):
 
         # Wall proximity
         obs.update(self.calculate_wall_distance(snake.body[0], grid_size))
+
+        # Tail collision
+        obs["tail_collision_right"] = snake.tail_collision_right
+        obs["tail_collision_left"] = snake.tail_collision_left
+        obs["tail_collision_up"] = snake.tail_collision_up
+        obs["tail_collision_down"] = snake.tail_collision_down
 
         return obs

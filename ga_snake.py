@@ -7,7 +7,7 @@ if __name__ == "__main__":
     generations = 202
     population_size = 50
     snake_population = [
-        SimpleModel(dims=(14, 64, 32, 4)) for _ in range(population_size)
+        SimpleModel(dims=(18, 64, 32, 4)) for _ in range(population_size)
     ]
     high_score = 0
     genration_highscore = 0
