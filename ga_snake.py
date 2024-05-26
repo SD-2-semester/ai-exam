@@ -13,18 +13,21 @@ if __name__ == "__main__":
     for generation in range(generations):
         for model in population:
             game = SnakeGame()
-            controller = GAController(game, model, display=False)
+            controller = GAController(game, model, display=True)
             game.run()
             # print(model)
-            population.mutate()
-            population.selection()
-            bf = population.best_fit()
+        population.mutate()
+        population.selection()
+        bf = population.best_fit()
+        # print(bf)
 
-            # print(f"Score: {controller.score}, Fitness: {controller.fitness}")
+        print(
+            f"Score: {controller.score}, Fitness: {controller.fitness}, Best Fitness: {bf}, Generation: {generation}"
+        )
 
-        # population.mutate()
-        # population.selection()
-        # bf = population.best_fit()
+    # population.mutate()
+    # population.selection()
+    # bf = population.best_fit()
 #
 # print(f"Generation: {generation}, Best Fitness: {bf},
 #

@@ -31,7 +31,9 @@ class Population:
             model.mutate(self.mutation_rate)
 
     def selection(self):
-        self.population = sorted(self.population)
+        self.population = sorted(
+            self.population, key=lambda x: x.fitness(), reverse=True
+        )
         self.population = self.population[len(self.population) // 2 :]
         while len(self.population) < 100:
             parents = random.sample(self.population, 2)
@@ -39,7 +41,8 @@ class Population:
             self.population.append(baby)
 
     def best_fit(self) -> float:
-        return max(self.population).fitness()
+        best = sorted(self.population, key=lambda x: x.fitness(), reverse=True)[0]
+        return best.fitness()
 
 
 #

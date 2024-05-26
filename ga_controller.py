@@ -33,7 +33,7 @@ class GAController(GameController):
 
     @property
     def fitness(self) -> float:
-        score = self.score * 100 if self.score >= 1 else 0
+        score = self.score
         return score / (np.log(self.steps + 1)) - 0.01 * self.steps
 
     def update(self) -> Vector:
@@ -45,18 +45,18 @@ class GAController(GameController):
 
         # normalized
 
-        dn = dn / self.game.grid.y
-        de = de / self.game.grid.x
-        ds = ds / self.game.grid.y
-        dw = dw / self.game.grid.x
+        # dn = dn / self.game.grid.y
+        # de = de / self.game.grid.x
+        # ds = ds / self.game.grid.y
+        # dw = dw / self.game.grid.x
 
         dfx = self.game.snake.p.x - self.game.food.p.x
         dfy = self.game.snake.p.y - self.game.food.p.y
 
         # normalized
 
-        dfx = dfx / self.game.grid.x
-        dfy = dfy / self.game.grid.y
+        # dfx = dfx / self.game.grid.x
+        # dfy = dfy / self.game.grid.y
 
         df = np.sqrt(
             (self.game.snake.p.x - self.game.food.p.x) ** 2
@@ -65,7 +65,7 @@ class GAController(GameController):
 
         # normalized
 
-        df = df / np.sqrt(self.game.grid.x**2 + self.game.grid.y**2)
+        # df = df / np.sqrt(self.game.grid.x**2 + self.game.grid.y**2)
 
         s = self.game.snake.score
 

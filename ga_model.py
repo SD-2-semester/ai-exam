@@ -29,7 +29,9 @@ class SimpleModel:
         self._fitness = 0
         for i, dim in enumerate(dims):
             if i < len(dims) - 1:
-                self.DNA.append(np.random.rand(dim, dims[i + 1]))
+                self.DNA.append(
+                    np.random.uniform(low=-1, high=1, size=(dim, dims[i + 1]))
+                )
 
     def update(self, obs):
         x = obs
