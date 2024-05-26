@@ -4,10 +4,10 @@ from ga_model import SimpleModel
 
 if __name__ == "__main__":
 
-    generations = 500
+    generations = 100
     population_size = 50
     snake_population = [
-        SimpleModel(dims=(14, 128, 128, 4)) for _ in range(population_size)
+        SimpleModel(dims=(14, 128, 128, 128, 4)) for _ in range(population_size)
     ]
     high_score = 0
     genration_highscore = 0
@@ -22,16 +22,16 @@ if __name__ == "__main__":
                 f"**** Current Generation: {generation}, high_score so far: {high_score}, by generation {genration_highscore}"
             )
             snake_number += 1
-            print("snake number: ", snake_number)
+            # print("snake number: ", snake_number)
             game = SnakeGame()
 
-            if generation > 400:
+            if generation > 100:
                 display = True
 
             controller = GAController(game, snake, display=display)
 
             game.run()
-            print(f"snake fitnes:{controller.fitness} and score: {controller.score}")
+            # print(f"snake fitnes:{controller.fitness} and score: {controller.score}")
             if controller.game.snake.score > high_score:
                 high_score = controller.score
                 genration_highscore = generation
@@ -64,16 +64,16 @@ if __name__ == "__main__":
             new_population.extend([child1, child2])
 
         # Ensure the new population is the same size as the original
-        print(len(new_population))
+        # print(len(new_population))
         if len(new_population) < population_size:
             new_population.extend(
                 top_half_population[: population_size - len(new_population)]
             )
 
-        print("Top 10: ", result_generation[:10])
+        # print("Top 10: ", result_generation[:10])
         snake_population = new_population
         if result_generation:
             print(f"Generation {generation} best fitness: {result_generation[0][0]}")
         print(f"Generation {generation}")
-        print(" ")
+        # print(" ")
     print("best_snake_dna:", snake_highscore.DNA)

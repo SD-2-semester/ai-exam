@@ -65,7 +65,7 @@ class SimpleModel:
                 self.biases[i] = np.where(
                     rand_bias_mask, self_bias_layer, rand_bias_layer
                 )
-            print("mutation done.")
+            
 
     def __add__(self, other: "SimpleModel"):
         baby_snake_DNA = []
