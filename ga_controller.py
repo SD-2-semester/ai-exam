@@ -69,8 +69,8 @@ class GAController(GameController):
             self.game.snake, self.game.food, self.game.grid
         )
         obs = (
-            normalized_direction_x,
-            normalized_direction_y,
+            direction_x,
+            direction_y,
             food_direction_x,
             food_position_y,
             obs_dict["danger_up"],
