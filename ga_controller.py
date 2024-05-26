@@ -59,14 +59,20 @@ class GAController(GameController):
         normalized_direction_x = 1 if direction_x > 0 else 0
         normalized_direction_y = 1 if direction_y > 0 else 0
 
+        food_direction_x = position_food.x - head_pos.x
+        food_position_y = position_food.y - head_pos.y
+        # Is the food to the left of the snake?
+
         # print(self.update_observations(self.game.snake, self.game.food, self.game.grid))
 
         obs_dict = self.update_observations(
             self.game.snake, self.game.food, self.game.grid
         )
         obs = (
-            # normalized_direction_x,
-            # normalized_direction_y,
+            normalized_direction_x,
+            normalized_direction_y,
+            food_direction_x,
+            food_position_y,
             obs_dict["danger_up"],
             obs_dict["danger_down"],
             obs_dict["danger_left"],
