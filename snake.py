@@ -18,7 +18,7 @@ class SnakeGame:
         while self.running:
             next_move = self.controller.update()
 
-            if self.controller.steps >= 1000:
+            if self.controller.steps >= 100:
                 message = "Number of moves exceeded."
                 self.snake.score -= 10000000 if self.snake.score < 1 else self.snake.score
                 self.running = False
