@@ -1,3 +1,4 @@
+from math import tan
 import random
 import numpy as np
 
@@ -47,14 +48,18 @@ class SimpleModel:
         return action.argmax()
         # return random.randint(0, 3)
 
-    def mutate(self, mutation_rate) -> None:
+    def mutate(self, mutation_rate, intensity) -> None:
         if random.random() < mutation_rate:
-            random_layer = random.randint(0, len(self.DNA) - 1)
-            row = random.randint(0, self.DNA[random_layer].shape[0] - 1)
-            col = random.randint(0, self.DNA[random_layer].shape[1] - 1)
-            self.DNA[random_layer][row][col] = random.uniform(-1, 1)
-
-    def selection(self) -> None: ...
+            for i in range(len(self.DNA)):
+                mutant_dna_layer = np.empty(self.DNA[i].shape)
+                for j in range(len(self.DNA[i])):
+                    self_dna_layer = np.array(self.DNA[i][j])
+                    rand_dna_layer = np.random.rand(*self_dna_layer.shape)
+                    rand_mask = np.random.rand(*self_dna_layer.shape) > intensity
+                    new_dna_layer = np.where(rand_mask, self_dna_layer, rand_dna_layer)
+                    mutant_dna_layer[j] = new_dna_layer
+                self.DNA[i] = mutant_dna_layer
+            print("mutation done.")
 
     def __add__(self, other: "SimpleModel"):
         baby_snake_DNA = []
@@ -65,7 +70,6 @@ class SimpleModel:
                 self_dna_layer = np.array(self.DNA[i][j])
                 other_dna_layer = np.array(other.DNA[i][j])
                 rand_mask = np.random.rand(*self_dna_layer.shape) > 0.5
-                print(rand_mask)
                 baby_dna_gene = np.where(rand_mask, self_dna_layer, other_dna_layer)
                 baby_dna_layer[j] = baby_dna_gene
             baby_snake_DNA.append(baby_dna_layer)

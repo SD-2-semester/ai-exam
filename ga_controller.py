@@ -1,8 +1,14 @@
-from game_controller import GameController
-from snake import SnakeGame
+from snake import Snake, SnakeGame
 from vector import Vector
 import pygame
 import numpy as np
+from typing import Protocol
+import math
+
+
+class GameController(Protocol):
+    def update(self) -> Vector:
+        pass
 
 
 class GAController(GameController):
@@ -34,26 +40,25 @@ class GAController(GameController):
     @property
     def fitness(self) -> float:
         score = self.score * 100 if self.score >= 1 else 0
-        return score / (np.log(self.steps + 1)) - 0.01 * self.steps
+        return score  # / (np.log(self.steps + 1)) - 0.01 * self.steps
 
     def update(self) -> Vector:
 
         # Positions
-        position_snake = self.game.snake.body[0]
+        position_snake = self.game.snake.p
         position_food = self.game.food.p
 
         # Calculate snake direction
-        if len(self.game.snake.body) > 1:
-            head_pos = self.game.snake.body[0]
-            next_pos = self.game.snake.body[1]
-            direction_x = (
-                head_pos.x - next_pos.x
-            )  # Positive if moving right, negative if left
-            direction_y = (
-                head_pos.y - next_pos.y
-            )  # Positive if moving down, negative if up
-        else:
-            direction_x, direction_y = 0, 0  # No movement if snake has only one segment
+
+        head_pos = self.game.snake.body[0]
+        next_pos = self.game.snake.body[1]
+        direction_x = (
+            head_pos.x - next_pos.x
+        )  # Positive if moving right, negative if left
+        direction_y = head_pos.y - next_pos.y  # Positive if moving down, negative if up
+
+        normalized_direction_x = 1 if direction_x > 0 else 0
+        normalized_direction_y = 1 if direction_y > 0 else 0
 
         # Distance to wall
         distance_north_snake_wall = self.game.snake.p.y
@@ -71,7 +76,7 @@ class GAController(GameController):
         )
 
         # Score
-        score = self.game.snake.score
+        score = np.log(self.game.snake.score + 1)
 
         # Normalize position of snake and food
         normalized_position_snake_x = self.normalize(position_snake.x, self.game.grid.x)
@@ -107,48 +112,58 @@ class GAController(GameController):
             distance_euclidean_food, max_distance
         )
 
-        # Assuming direction can be -1, 0, or 1, it's already normalized to a degree, but let's scale it to [0, 1]
-        normalized_direction_x = (direction_x + 1) / 2
-        normalized_direction_y = (direction_y + 1) / 2
-
         # Normalize score if there's a known max score, otherwise, it can be scaled by some large number or average score expected
         max_score = 100  # Example max score, adjust based on game specifics
-        normalized_score = self.normalize(score, max_score)
 
+        (
+            angle,
+            snake_direction_vector,
+            apple_direction_vector_normalized,
+            snake_direction_vector_normalized,
+        ) = self.angle_with_apple(
+            snake_position=self.game.snake.p,
+            apple_position=[position_food.x, position_food.y],
+        )
         # Recreate the observation tuple with normalized values
         obs = (
-            normalized_position_snake_x,
-            normalized_position_snake_y,
+            # normalized_position_snake_x,
+            # normalized_position_snake_y,
             normalized_direction_x,
             normalized_direction_y,
-            normalized_position_food_x,
-            normalized_position_food_y,
+            # normalized_position_food_x,
+            # normalized_position_food_y,
             normalized_distance_north_snake_wall,
             normalized_distance_south_snake_wall,
             normalized_distance_east_snake_wall,
             normalized_distance_west_snake_wall,
-            normalized_distance_snake_food_x,
-            normalized_distance_snake_food_y,
-            normalized_distance_euclidean_food,
-            normalized_score,
+            # normalized_distance_snake_food_x,
+            # normalized_distance_snake_food_y,
+            # normalized_distance_euclidean_food,
+            score,
+            # angle,
+            apple_direction_vector_normalized[0],
+            apple_direction_vector_normalized[1],
         )
-
         action = self.model.action(obs)
         next_move = self.action_space[action]
-
-        if self.display:
-            self.screen.fill("black")
-            for i, p in enumerate(self.game.snake.body):
+        try:
+            if self.display:
+                self.screen.fill("black")
+                for i, p in enumerate(self.game.snake.body):
+                    pygame.draw.rect(
+                        self.screen,
+                        (0, max(128, 255 - i * 12), 0),
+                        self.block(p),
+                    )
                 pygame.draw.rect(
-                    self.screen,
-                    (0, max(128, 255 - i * 12), 0),
-                    self.block(p),
+                    self.screen, self.color_food, self.block(self.game.food.p)
                 )
-            pygame.draw.rect(self.screen, self.color_food, self.block(self.game.food.p))
-            pygame.display.flip()
-            self.clock.tick(10)
+                pygame.display.flip()
+                self.clock.tick(24)
 
-        self.steps += 1
+            self.steps += 1
+        except Exception as e:
+            print(e)
         return next_move
 
     @property
@@ -169,3 +184,54 @@ class GAController(GameController):
 
     def normalize(self, value, max_value):
         return value / max_value
+
+    # Function to evaluate angle between apple and snake.
+    def angle_with_apple(self, snake_position, apple_position):
+
+        apple_direction_vector = np.array(apple_position) - np.array(
+            [snake_position.x, snake_position.y]
+        )
+        snake_direction_vector = np.array(  # not working nnot being used
+            [
+                snake_position.x,
+                snake_position.y,
+            ]
+        ) - np.array(
+            [
+                snake_position.x,
+                snake_position.y,
+            ]
+        )
+
+        norm_of_apple_direction_vector = np.linalg.norm(apple_direction_vector)
+        norm_of_snake_direction_vector = np.linalg.norm(snake_direction_vector)
+        if norm_of_apple_direction_vector == 0:
+            norm_of_apple_direction_vector = 10
+        if norm_of_snake_direction_vector == 0:
+            norm_of_snake_direction_vector = 10
+
+        apple_direction_vector_normalized = (
+            apple_direction_vector / norm_of_apple_direction_vector
+        )
+        snake_direction_vector_normalized = (
+            snake_direction_vector / norm_of_snake_direction_vector
+        )
+        angle = (
+            math.atan2(
+                apple_direction_vector_normalized[1]
+                * snake_direction_vector_normalized[0]
+                - apple_direction_vector_normalized[0]
+                * snake_direction_vector_normalized[1],
+                apple_direction_vector_normalized[1]
+                * snake_direction_vector_normalized[0]
+                + apple_direction_vector_normalized[0]
+                * snake_direction_vector_normalized[1],
+            )
+            / math.pi
+        )
+        return (
+            angle,
+            snake_direction_vector,
+            apple_direction_vector_normalized,
+            snake_direction_vector_normalized,
+        )

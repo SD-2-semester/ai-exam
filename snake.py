@@ -3,11 +3,10 @@ from collections import deque
 from typing import Protocol
 import pygame
 from vector import Vector
-from game_controller import HumanController
 
 
 class SnakeGame:
-    def __init__(self, xsize: int = 15, ysize: int = 10, scale: int = 15):
+    def __init__(self, xsize: int = 30, ysize: int = 30, scale: int = 15):
         self.grid = Vector(xsize, ysize)
         self.scale = scale
         self.snake = Snake(game=self)
@@ -21,8 +20,12 @@ class SnakeGame:
 
             if self.controller.steps >= 1000:
                 message = "Number of moves exceeded."
+                self.snake.score = -1000 if self.snake.score < 1 else self.snake.score
                 self.running = False
             if next_move:
+                if self.snake.v != next_move:
+                    print("added score")
+                    self.snake.score += 1
                 self.snake.v = next_move
                 self.snake.move()
             if not self.snake.p.within(self.grid):
@@ -54,6 +57,8 @@ class Snake:
         self.v = Vector(0, 0)
         self.body = deque()
         self.body.append(Vector.random_within(self.game.grid))
+        tail = self.body[0]
+        self.body.append(tail)
 
     def move(self):
         self.p = self.p + self.v
@@ -76,14 +81,13 @@ class Snake:
         self.body.pop()
 
     def add_score(self):
-        self.score += 1
+        self.score += 1000
         tail = self.body.pop()
         self.body.append(tail)
         self.body.append(tail)
-    
+
     def remove_score(self):
         self.score -= 100
-
 
     def debug(self):
         print("===")
