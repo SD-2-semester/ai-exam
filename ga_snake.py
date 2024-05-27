@@ -4,13 +4,13 @@ from ga_model import SimpleModel
 
 if __name__ == "__main__":
 
-    generations = 202
+    generations = 800
     population_size = 50
     snake_population = [
-        SimpleModel(dims=(18, 64, 32, 4)) for _ in range(population_size)
+        SimpleModel(dims=(12, 64, 32, 4)) for _ in range(population_size)
     ]
     high_score = 0
-    genration_highscore = 0
+    generation_highscore = 0
     snake_highscore = SimpleModel(dims=(9, 2, 3))
     display = False
 
@@ -19,13 +19,13 @@ if __name__ == "__main__":
         result_generation = []
         for snake in snake_population:
             print(
-                f"**** Current Generation: {generation}, high_score so far: {high_score}, by generation {genration_highscore}"
+                f"**** Current Generation: {generation}, high_score so far: {high_score}, by generation {generation_highscore}"
             )
             snake_number += 1
             # print("snake number: ", snake_number)
             game = SnakeGame()
 
-            if generation > 200:
+            if generation > 795:
                 display = True
 
             controller = GAController(game, snake, display=display)
@@ -34,7 +34,7 @@ if __name__ == "__main__":
             # print(f"snake fitnes:{controller.fitness} and score: {controller.score}")
             if controller.game.snake.score > high_score:
                 high_score = controller.score
-                genration_highscore = generation
+                generation_highscore = generation
                 snake_highscore = snake
             # print(snake_number, "Snake dna: ", snake.DNA)
             # print(snake_number, "Snake dna: ", snake.get_shapes())

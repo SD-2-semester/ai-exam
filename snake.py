@@ -18,7 +18,7 @@ class SnakeGame:
         while self.running:
             next_move = self.controller.update()
 
-            if self.controller.steps >= 1000:
+            if self.controller.steps >= 1250:
                 message = "Number of moves exceeded."
                 # self.snake.score -= (
                 #     10000000 if self.snake.score < 1 else self.snake.score
@@ -28,6 +28,14 @@ class SnakeGame:
             if next_move:
                 if self.snake.v != next_move:
                     self.snake.score += 1
+                # see if snake is colliding with self
+
+                # if self.snake.p + next_move == self.snake.body[1]:
+                #     message = "Game over! You cannot move in the opposite direction!"
+                #     # self.snake.remove_score()
+                #     self.running = False
+                # else:
+
                 self.snake.v = next_move
                 self.snake.move()
 
@@ -44,6 +52,7 @@ class SnakeGame:
             if self.snake.p == self.food.p:
                 self.snake.add_score()
                 self.food = Food(game=self)
+
         print(f"{message} ... Score: {self.snake.score}")
 
 
@@ -75,36 +84,19 @@ class Snake:
             return False
 
     @property
-    def tail_collision_right(self) -> float:
-        for i in range(self.p.x + 1, self.game.grid.x):
-            vector = Vector(i, 0)
-            if self.p + vector in self.body:
-                return i / self.game.grid.x
-        return 1
+    def direction(self) -> tuple[int, int, int, int]:
+        # left, right, up, down
 
-    @property
-    def tail_collision_left(self) -> float:
-        for i in range(self.p.x - 1, 0, -1):
-            vector = Vector(i, 0)
-            if self.p + vector in self.body:
-                return i / self.game.grid.x
-        return 1
+        if self.v == Vector(-1, 0):
+            return 1, 0, 0, 0
+        elif self.v == Vector(1, 0):
+            return 0, 1, 0, 0
+        elif self.v == Vector(0, -1):
+            return 0, 0, 1, 0
+        elif self.v == Vector(0, 1):
+            return 0, 0, 0, 1
 
-    @property
-    def tail_collision_up(self) -> float:
-        for i in range(self.p.y - 1, 0, -1):
-            vector = Vector(0, i)
-            if self.p + vector in self.body:
-                return i / self.game.grid.y
-        return 1
-
-    @property
-    def tail_collision_down(self) -> float:
-        for i in range(self.p.y + 1, self.game.grid.y):
-            vector = Vector(0, i)
-            if self.p + vector in self.body:
-                return i / self.game.grid.y
-        return 1
+        return 0, 0, 0, 0
 
     @property
     def p(self):
@@ -125,6 +117,10 @@ class Snake:
         self.score -= 100
 
     def debug(self):
-        print("===")
-        for i in self.body:
-            print(str(i))
+        # print("===")
+        # for i in self.body:
+        #    print(str(i))
+        ...
+
+
+#

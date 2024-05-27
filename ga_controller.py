@@ -17,6 +17,7 @@ class GAController(GameController):
         self.game.controller = self
         self.model = model
         self.display = display
+        self.fps = 24
         if self.display:
             pygame.init()
             self.screen = pygame.display.set_mode(
@@ -44,51 +45,36 @@ class GAController(GameController):
 
     def update(self) -> Vector:
 
-        # Positions
-        snake_body = self.game.snake.body
-        position_food = self.game.food.p
+        obs = {}
 
-        # Calculate snake direction
-        head_pos = self.game.snake.body[0]
-        next_pos = self.game.snake.body[1]
-        direction_x = (
-            head_pos.x - next_pos.x
-        )  # Positive if moving right, negative if left
-        direction_y = head_pos.y - next_pos.y  # Positive if moving down, negative if up
+        # danger left, right, up, down
 
-        normalized_direction_x = 1 if direction_x > 0 else 0
-        normalized_direction_y = 1 if direction_y > 0 else 0
+        d_left, d_right, d_up, d_down = self.check_surrounding_danger()
 
-        food_direction_x = position_food.x - head_pos.x
-        food_position_y = position_food.y - head_pos.y
-        # Is the food to the left of the snake?
+        obs["danger_left"] = d_left
+        obs["danger_right"] = d_right
+        obs["danger_up"] = d_up
+        obs["danger_down"] = d_down
 
-        # print(self.update_observations(self.game.snake, self.game.food, self.game.grid))
+        # direction left, right, up, down
 
-        obs_dict = self.update_observations(
-            self.game.snake, self.game.food, self.game.grid
-        )
-        obs = (
-            direction_x,
-            direction_y,
-            food_direction_x,
-            food_position_y,
-            obs_dict["danger_up"],
-            obs_dict["danger_down"],
-            obs_dict["danger_left"],
-            obs_dict["danger_right"],
-            obs_dict["food_distance"],
-            obs_dict["food_angle"],
-            obs_dict["distance_to_left_wall"],
-            obs_dict["distance_to_right_wall"],
-            obs_dict["distance_to_top_wall"],
-            obs_dict["distance_to_bottom_wall"],
-            obs_dict["tail_collision_right"],
-            obs_dict["tail_collision_left"],
-            obs_dict["tail_collision_up"],
-            obs_dict["tail_collision_down"],
-        )
-        # print(obs)
+        dir_left, dir_right, dir_up, dir_down = self.game.snake.direction
+
+        obs["dir_left"] = dir_left
+        obs["dir_right"] = dir_right
+        obs["dir_up"] = dir_up
+        obs["dir_down"] = dir_down
+
+        # food relative position left right up down
+
+        f_left, f_right, f_up, f_down = self.check_food_relative_position()
+
+        obs["food_left"] = f_left
+        obs["food_right"] = f_right
+        obs["food_up"] = f_up
+        obs["food_down"] = f_down
+
+        obs = np.array(list(obs.values()))
 
         action = self.model.action(obs)
         next_move = self.action_space[action]
@@ -112,6 +98,33 @@ class GAController(GameController):
             print(e)
         return next_move
 
+    def check_surrounding_danger(self) -> tuple[int, ...]:
+        body = self.game.snake.body
+        head = self.game.snake.p
+        grid = self.game.grid
+
+        dangers = [
+            (head.x == 0 or (head + Vector(-1, 0)) in body),  # left
+            (head.x == grid.x - 1 or (head + Vector(1, 0)) in body),  # right
+            (head.y == 0 or (head + Vector(0, -1)) in body),  # up
+            (head.y == grid.y - 1 or (head + Vector(0, 1)) in body),  # down
+        ]
+
+        return tuple(int(danger) for danger in dangers)
+
+    def check_food_relative_position(self) -> tuple[int, ...]:
+        head = self.game.snake.p
+        food = self.game.food.p
+
+        relative_position = [
+            (head.x > food.x),  # left
+            (head.x < food.x),  # right
+            (head.y > food.y),  # up
+            (head.y < food.y),  # down
+        ]
+
+        return tuple(int(position) for position in relative_position)
+
     @property
     def has_stopped(self) -> bool:
         return not self.game.running
@@ -127,77 +140,3 @@ class GAController(GameController):
     def __del__(self):
         if self.display:
             pygame.quit()
-
-    def normalize(self, value, max_value):
-        return value / max_value
-
-    def calculate_relative_food_position(self, snake_head, food_position):
-        vector_to_food = np.array(
-            [food_position.x - snake_head.x, food_position.y - snake_head.y]
-        )
-        distance = np.linalg.norm(vector_to_food)
-        angle = np.arctan2(vector_to_food[1], vector_to_food[0])
-        return (
-            distance / np.sqrt(self.game.grid.x**2 + self.game.grid.y**2),
-            angle / np.pi,
-        )  # Normalized
-
-    def check_directional_danger(self, snake, direction, grid_size):
-        head_x, head_y = snake.body[0].x, snake.body[0].y
-        next_position = {
-            "up": (head_x, head_y - 1),
-            "down": (head_x, head_y + 1),
-            "left": (head_x - 1, head_y),
-            "right": (head_x + 1, head_y),
-        }
-        next_x, next_y = next_position[direction]
-
-        # Check wall collisions
-        if next_x < 0 or next_x >= grid_size.x or next_y < 0 or next_y >= grid_size.y:
-            return 1  # Danger
-
-        # Check self collisions
-        if (next_x, next_y) in [
-            (s.x, s.y) for s in list(snake.body)[1:]
-        ]:  # Exclude the head in comparison
-            return 1  # Danger
-
-        return 0  # No danger
-
-    def calculate_wall_distance(self, snake_head, grid_size):
-        distances = {
-            "distance_to_left_wall": snake_head.x,
-            "distance_to_right_wall": grid_size.x - snake_head.x - 1,
-            "distance_to_top_wall": snake_head.y,
-            "distance_to_bottom_wall": grid_size.y - snake_head.y - 1,
-        }
-        # Normalize distances
-        for key in distances:
-            distances[key] /= max(grid_size.x, grid_size.y)
-        return distances
-
-    def update_observations(self, snake, food, grid_size):
-        obs = {}
-        directions = ["up", "down", "left", "right"]
-
-        # Danger checks
-        for direction in directions:
-            obs[f"danger_{direction}"] = self.check_directional_danger(
-                snake, direction, grid_size
-            )
-
-        # Food relative position
-        distance, angle = self.calculate_relative_food_position(snake.body[0], food.p)
-        obs["food_distance"] = distance
-        obs["food_angle"] = angle
-
-        # Wall proximity
-        obs.update(self.calculate_wall_distance(snake.body[0], grid_size))
-
-        # Tail collision
-        obs["tail_collision_right"] = snake.tail_collision_right
-        obs["tail_collision_left"] = snake.tail_collision_left
-        obs["tail_collision_up"] = snake.tail_collision_up
-        obs["tail_collision_down"] = snake.tail_collision_down
-
-        return obs
