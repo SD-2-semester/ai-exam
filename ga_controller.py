@@ -1,8 +1,14 @@
-from game_controller import GameController
-from snake import SnakeGame
+from snake import Snake, SnakeGame
 from vector import Vector
 import pygame
 import numpy as np
+from typing import Protocol
+import math
+
+
+class GameController(Protocol):
+    def update(self) -> Vector:
+        pass
 
 
 class GAController(GameController):
@@ -11,6 +17,7 @@ class GAController(GameController):
         self.game.controller = self
         self.model = model
         self.display = display
+        self.fps = 24
         if self.display:
             pygame.init()
             self.screen = pygame.display.set_mode(
@@ -20,8 +27,8 @@ class GAController(GameController):
             self.color_snake_head = (0, 255, 0)
             self.color_food = (255, 0, 0)
         self.action_space = (
-            Vector(0, -1),
             Vector(0, 1),
+            Vector(0, -1),
             Vector(1, 0),
             Vector(-1, 0),
         )
@@ -33,38 +40,90 @@ class GAController(GameController):
 
     @property
     def fitness(self) -> float:
-        return self.score / (np.log(self.steps))
+        score = self.score * 100 if self.score >= 1 else 0
+        return score / (np.log(self.steps + 1)) - 0.01 * self.steps
 
     def update(self) -> Vector:
 
-        dn = self.game.snake.p.y
-        de = self.game.grid.x - self.game.snake.p.x
-        ds = self.game.grid.y - self.game.snake.p.y
-        dw = self.game.snake.p.x
+        obs = {}
 
-        dfx = self.game.snake.p.x - self.game.food.p.x
-        dfy = self.game.snake.p.y - self.game.food.p.y
+        # danger left, right, up, down
 
-        s = self.game.snake.score
+        d_left, d_right, d_up, d_down = self.check_surrounding_danger()
 
-        obs = (dn, de, ds, dw, dfx, dfy, s)
+        obs["danger_left"] = d_left
+        obs["danger_right"] = d_right
+        obs["danger_up"] = d_up
+        obs["danger_down"] = d_down
 
-        next_move = self.action_space[self.model.action(obs)]
+        # direction left, right, up, down
 
-        if self.display:
-            self.screen.fill("black")
-            for i, p in enumerate(self.game.snake.body):
+        dir_left, dir_right, dir_up, dir_down = self.game.snake.direction
+
+        obs["dir_left"] = dir_left
+        obs["dir_right"] = dir_right
+        obs["dir_up"] = dir_up
+        obs["dir_down"] = dir_down
+
+        # food relative position left right up down
+
+        f_left, f_right, f_up, f_down = self.check_food_relative_position()
+
+        obs["food_left"] = f_left
+        obs["food_right"] = f_right
+        obs["food_up"] = f_up
+        obs["food_down"] = f_down
+
+        obs = np.array(list(obs.values()))
+
+        action = self.model.action(obs)
+        next_move = self.action_space[action]
+        try:
+            if self.display:
+                self.screen.fill("black")
+                for i, p in enumerate(self.game.snake.body):
+                    pygame.draw.rect(
+                        self.screen,
+                        (0, max(128, 255 - i * 12), 0),
+                        self.block(p),
+                    )
                 pygame.draw.rect(
-                    self.screen,
-                    (0, max(128, 255 - i * 12), 0),
-                    self.block(p),
+                    self.screen, self.color_food, self.block(self.game.food.p)
                 )
-            pygame.draw.rect(self.screen, self.color_food, self.block(self.game.food.p))
-            pygame.display.flip()
-            self.clock.tick(10)
+                pygame.display.flip()
+                self.clock.tick(24)
 
-        self.steps += 1
+            self.steps += 1
+        except Exception as e:
+            print(e)
         return next_move
+
+    def check_surrounding_danger(self) -> tuple[int, ...]:
+        body = self.game.snake.body
+        head = self.game.snake.p
+        grid = self.game.grid
+
+        dangers = [
+            (head.x == 0 or (head + Vector(-1, 0)) in body),  # left
+            (head.x == grid.x - 1 or (head + Vector(1, 0)) in body),  # right
+            (head.y == 0 or (head + Vector(0, -1)) in body),  # up
+            (head.y == grid.y - 1 or (head + Vector(0, 1)) in body),  # down
+        ]
+
+        return tuple(int(danger) for danger in dangers)
+
+    def check_food_relative_position(self) -> tuple[int, ...]:
+        head = self.game.snake.p
+        food = self.game.food.p
+
+        relative_position = [
+            (head.x > food.x),  # left
+            (head.x < food.x),  # right
+            (head.y > food.y),  # up
+            (head.y < food.y),  # down
+        ]
+
+        return tuple(int(position) for position in relative_position)
 
     @property
     def has_stopped(self) -> bool:

@@ -3,7 +3,6 @@ from collections import deque
 from typing import Protocol
 import pygame
 from vector import Vector
-from game_controller import HumanController
 
 
 class SnakeGame:
@@ -15,23 +14,45 @@ class SnakeGame:
         self.running = True
 
     def run(self):
-        running = True
-        while running:
+
+        while self.running:
             next_move = self.controller.update()
+
+            if self.controller.steps >= 1250:
+                message = "Number of moves exceeded."
+                # self.snake.score -= (
+                #     10000000 if self.snake.score < 1 else self.snake.score
+                # )
+                self.running = False
+
             if next_move:
+                if self.snake.v != next_move:
+                    self.snake.score += 1
+                # see if snake is colliding with self
+
+                # if self.snake.p + next_move == self.snake.body[1]:
+                #     message = "Game over! You cannot move in the opposite direction!"
+                #     # self.snake.remove_score()
+                #     self.running = False
+                # else:
+
                 self.snake.v = next_move
-            self.snake.move()
+                self.snake.move()
+
             if not self.snake.p.within(self.grid):
-                running = False
+                # self.snake.remove_score()
                 self.running = False
                 message = "Game over! You crashed into the wall!"
+
             if self.snake.cross_own_tail:
-                running = False
+                # self.snake.remove_score()
                 self.running = False
                 message = "Game over! You hit your own tail!"
+
             if self.snake.p == self.food.p:
                 self.snake.add_score()
                 self.food = Food(game=self)
+
         print(f"{message} ... Score: {self.snake.score}")
 
 
@@ -48,6 +69,8 @@ class Snake:
         self.v = Vector(0, 0)
         self.body = deque()
         self.body.append(Vector.random_within(self.game.grid))
+        tail = self.body[0]
+        self.body.append(tail)
 
     def move(self):
         self.p = self.p + self.v
@@ -61,6 +84,21 @@ class Snake:
             return False
 
     @property
+    def direction(self) -> tuple[int, int, int, int]:
+        # left, right, up, down
+
+        if self.v == Vector(-1, 0):
+            return 1, 0, 0, 0
+        elif self.v == Vector(1, 0):
+            return 0, 1, 0, 0
+        elif self.v == Vector(0, -1):
+            return 0, 0, 1, 0
+        elif self.v == Vector(0, 1):
+            return 0, 0, 0, 1
+
+        return 0, 0, 0, 0
+
+    @property
     def p(self):
         return self.body[0]
 
@@ -70,12 +108,19 @@ class Snake:
         self.body.pop()
 
     def add_score(self):
-        self.score += 1
+        self.score += 1000
         tail = self.body.pop()
         self.body.append(tail)
         self.body.append(tail)
 
+    def remove_score(self):
+        self.score -= 100
+
     def debug(self):
-        print("===")
-        for i in self.body:
-            print(str(i))
+        # print("===")
+        # for i in self.body:
+        #    print(str(i))
+        ...
+
+
+#

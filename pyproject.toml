@@ -6,7 +6,7 @@ authors = ["mslaursen <martin_laursen21@hotmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.10.11"
 pygame = "^2.5.2"
 numpy = "^1.26.4"
 
