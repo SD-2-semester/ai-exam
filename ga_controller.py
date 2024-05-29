@@ -1,3 +1,4 @@
+from ga_model import SimpleModel
 from snake import Snake, SnakeGame
 from vector import Vector
 import pygame
@@ -15,7 +16,7 @@ class GAController(GameController):
     def __init__(self, game, model, display=False):
         self.game = game
         self.game.controller = self
-        self.model = model
+        self.model: SimpleModel = model
         self.display = display
         self.fps = 24
         if self.display:
@@ -38,8 +39,7 @@ class GAController(GameController):
     def score(self) -> int:
         return self.game.snake.score
 
-    @property
-    def fitness(self) -> float:
+    def calc_fitness(self) -> float:
         score = self.score * 100 if self.score >= 1 else 0
         return score / (np.log(self.steps + 1)) - 0.01 * self.steps
 
@@ -96,6 +96,8 @@ class GAController(GameController):
             self.steps += 1
         except Exception as e:
             print(e)
+
+        self.model.fitness = self.calc_fitness()
         return next_move
 
     def check_surrounding_danger(self) -> tuple[int, ...]:

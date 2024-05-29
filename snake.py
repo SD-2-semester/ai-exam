@@ -6,12 +6,19 @@ from vector import Vector
 
 
 class SnakeGame:
-    def __init__(self, xsize: int = 30, ysize: int = 30, scale: int = 15):
+    def __init__(
+        self,
+        xsize: int = 30,
+        ysize: int = 30,
+        scale: int = 15,
+        verbose=False,
+    ):
         self.grid = Vector(xsize, ysize)
         self.scale = scale
         self.snake = Snake(game=self)
         self.food = Food(game=self)
         self.running = True
+        self.verbose = verbose
 
     def run(self):
 
@@ -53,7 +60,8 @@ class SnakeGame:
                 self.snake.add_score()
                 self.food = Food(game=self)
 
-        print(f"{message} ... Score: {self.snake.score}")
+        if self.verbose:
+            print(message)
 
 
 class Food:
