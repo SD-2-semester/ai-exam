@@ -10,8 +10,10 @@ if __name__ == "__main__":
     generations = 200
     population_size = 50
     snake_population = [
-        load_model(filename=best_snake_filename) for _ in range(population_size)
+        SimpleModel(dims=(12, 64, 32, 4)) for _ in range(population_size)
     ]
+    # lazy
+    # snake_population = [load_model(best_snake_filename) for _ in range(population_size)]
     high_score = 0
     generation_highscore = 0
     snake_highscore = SimpleModel(dims=(9, 2, 3))
@@ -62,8 +64,8 @@ if __name__ == "__main__":
             )
             child1 = parent1 + parent2
             child2 = parent2 + parent1
-            child1.mutate(0.2, 0.1)
-            child2.mutate(0.2, 0.1)
+            child1.mutate(0.2, 0.3)
+            child2.mutate(0.2, 0.3)
             new_population.extend([child1, child2])
 
         # Ensure the new population is the same size as the original
