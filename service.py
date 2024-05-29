@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import pickle
 
 
 class EvolutionTracker:
@@ -36,3 +37,14 @@ class EvolutionTracker:
         plt.ioff()
         plt.show()
 
+
+def save_model(model, filename):
+    """Save the given model to a file."""
+    with open(filename, "wb") as f:
+        pickle.dump(model, f)
+
+
+def load_model(filename):
+    """Load a model from a file."""
+    with open(filename, "rb") as f:
+        return pickle.load(f)

@@ -1,14 +1,16 @@
 from snake import SnakeGame
 from ga_controller import GAController
 from ga_model import SimpleModel
-from service import EvolutionTracker
+from service import EvolutionTracker, save_model, load_model
+import pickle
 
 if __name__ == "__main__":
 
-    generations = 202
+    best_snake_filename = "best_snake"
+    generations = 200
     population_size = 50
     snake_population = [
-        SimpleModel(dims=(12, 64, 32, 4)) for _ in range(population_size)
+        load_model(filename=best_snake_filename) for _ in range(population_size)
     ]
     high_score = 0
     generation_highscore = 0
@@ -60,8 +62,8 @@ if __name__ == "__main__":
             )
             child1 = parent1 + parent2
             child2 = parent2 + parent1
-            child1.mutate(0.2, 0.3)
-            child2.mutate(0.2, 0.3)
+            child1.mutate(0.2, 0.1)
+            child2.mutate(0.2, 0.1)
             new_population.extend([child1, child2])
 
         # Ensure the new population is the same size as the original
@@ -84,4 +86,6 @@ if __name__ == "__main__":
         # print(" ")
     print("best_snake_dna:", snake_highscore.DNA)
 
-tracker.finalize()
+    save_model(snake_highscore, best_snake_filename)
+
+    tracker.finalize()
