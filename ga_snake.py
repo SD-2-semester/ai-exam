@@ -1,6 +1,7 @@
 from snake import SnakeGame
 from ga_controller import GAController
 from ga_model import SimpleModel
+from service import EvolutionTracker
 
 if __name__ == "__main__":
 
@@ -13,7 +14,7 @@ if __name__ == "__main__":
     generation_highscore = 0
     snake_highscore = SimpleModel(dims=(9, 2, 3))
     display = False
-
+    tracker = EvolutionTracker()
     for generation in range(generations):
         snake_number = 0
         result_generation = []
@@ -73,7 +74,14 @@ if __name__ == "__main__":
         # print("Top 10: ", result_generation[:10])
         snake_population = new_population
         if result_generation:
-            print(f"Generation {generation} best fitness: {result_generation[0][0]}")
+            tracker.add_data(
+                generation_no=generation,
+                score=game.snake.score,
+                fitness=controller.fitness,
+            )
+            print(f"Generation {generation} best fitness: {controller.fitness}")
         print(f"Generation {generation}")
         # print(" ")
     print("best_snake_dna:", snake_highscore.DNA)
+
+tracker.finalize()
