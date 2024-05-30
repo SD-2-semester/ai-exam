@@ -1,3 +1,4 @@
+from matplotlib.mlab import GaussianKDE
 from population import Population
 from snake import SnakeGame
 from ga_controller import GAController
@@ -29,8 +30,14 @@ if __name__ == "__main__":
 
             if verbose:
                 print(f"Current Generation: {generation} - High Score: {high_score}")
+        tracker.add_data(
+            generation_no=generation,
+            score=high_score,
+            fitness=population.best_fit().fitness,
+        )
 
         population.selection()
         population.mutate()
 
     print(f"Best Snake: {population.best_fit().fitness}")
+    tracker.finalize()
