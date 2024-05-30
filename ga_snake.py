@@ -11,18 +11,18 @@ if __name__ == "__main__":
     generations = 200
     population = Population(size=pop_size)
     verbose = True
-    late_display = False
+    late_display = True
     high_score = 0
     best_model = None
 
-    load_best_model = False 
+    load_best_model = False
 
     for generation in range(generations):
         for model in population:
             model = load_model(filename=filename) if load_best_model else model
 
             display = False
-            if late_display and generation > generations - 10:
+            if late_display and generation > generations - 1:
                 display = True
 
             game = SnakeGame(verbose=verbose)
