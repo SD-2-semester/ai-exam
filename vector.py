@@ -15,7 +15,7 @@ class Vector:
     def __sub__(self, other: "Vector") -> "Vector":
         return Vector(self.x - other.x, self.y - other.y)
 
-    def within(self, scope: "Vector") -> "Vector":
+    def within(self, scope: "Vector") -> bool:
         return self.x <= scope.x and self.x >= 0 and self.y <= scope.y and self.y >= 0
 
     def __eq__(self, other: "Vector") -> bool:

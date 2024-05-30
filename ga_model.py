@@ -28,6 +28,7 @@ class SimpleModel:
         self.dims = dims
         self.DNA = []
         self.biases = []
+        self._fitness = 0
         for i, dim in enumerate(dims):
             if i < len(dims) - 1:
                 self.DNA.append(
@@ -50,7 +51,11 @@ class SimpleModel:
         return action.argmax()
         # return random.randint(0, 3)
 
-    def mutate(self, mutation_rate, intensity) -> None:
+    def mutate(
+        self,
+        mutation_rate: float,
+        intensity: float,
+    ) -> None:
         if random.random() < mutation_rate:
             for i in range(len(self.DNA)):
                 # Mutate weights
@@ -90,3 +95,11 @@ class SimpleModel:
         # Prints the shapes of the arrays in self.DNA
         for arr in self.DNA:
             print(arr.shape)
+
+    @property
+    def fitness(self):
+        return self._fitness
+
+    @fitness.setter
+    def fitness(self, value):
+        self._fitness = value
