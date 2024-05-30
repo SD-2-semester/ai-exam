@@ -9,15 +9,15 @@ if __name__ == "__main__":
     best_snake_filename = "best_snake"
     generations = 200
     population_size = 50
-    snake_population = [
-        SimpleModel(dims=(12, 64, 32, 4)) for _ in range(population_size)
-    ]
+    # snake_population = [
+    #     SimpleModel(dims=(12, 64, 32, 4)) for _ in range(population_size)
+    # ]
     # lazy
-    # snake_population = [load_model(best_snake_filename) for _ in range(population_size)]
+    snake_population = [load_model(best_snake_filename) for _ in range(population_size)]
     high_score = 0
     generation_highscore = 0
     snake_highscore = SimpleModel(dims=(9, 2, 3))
-    display = False
+    display = True
     tracker = EvolutionTracker()
     for generation in range(generations):
         snake_number = 0
