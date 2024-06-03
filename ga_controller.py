@@ -48,7 +48,7 @@ class GAController(GameController):
         return self.game.snake.score
 
     def calc_fitness(self) -> float:
-        return self.score /(self.steps + 1)
+        return self.score / (np.log(self.steps + 1))
 
     def update(self) -> Vector:
 
