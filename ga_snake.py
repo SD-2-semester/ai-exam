@@ -7,8 +7,8 @@ from service import load_model, save_model, EvolutionTracker
 if __name__ == "__main__":
     tracker = EvolutionTracker()
     filename = "./models/best_model"
-    pop_size = 50
-    generations = 200
+    pop_size = 100
+    generations = 50
     population = Population(size=pop_size)
     verbose = True
     late_display = True
@@ -22,7 +22,7 @@ if __name__ == "__main__":
             model = load_model(filename=filename) if load_best_model else model
 
             display = False
-            if late_display and generation > generations - 1:
+            if late_display and generation > generations - 2:
                 display = True
 
             game = SnakeGame(verbose=verbose)

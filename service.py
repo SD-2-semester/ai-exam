@@ -4,13 +4,13 @@ import pickle
 
 class EvolutionTracker:
     def __init__(self):
-
         self.generation_number = []
         self.score_list = []
         self.fitness_list = []
 
         plt.ion()  # interactive mode
         self.fig, self.ax = plt.subplots()
+        self.ax2 = self.ax.twinx()  # Create a twin of the original axis for fitness
 
     def add_data(self, generation_no: int, score: int, fitness: float):
         """Append new data to the lists and update the plot."""
@@ -18,17 +18,22 @@ class EvolutionTracker:
         self.score_list.append(score)
         self.fitness_list.append(fitness)
 
-        # clear the previous plot
+        # Clear the previous plot
         self.ax.clear()
+        self.ax2.clear()
 
-        # updated data
-        self.ax.plot(self.generation_number, self.score_list, label="Score")
-        self.ax.plot(self.generation_number, self.fitness_list, label="Fitness")
+        # Update data for score on the original axis
+        self.ax.plot(self.generation_number, self.score_list, "b-", label="High Score")
         self.ax.set_xlabel("Generation Number")
-        self.ax.set_ylabel("Values")
-        self.ax.legend()
 
-        # redraw the plot and pause to update the display
+        # Update data for fitness on the twin axis
+        self.ax2.plot(self.generation_number, self.fitness_list, "g-", label="Fitness")
+
+        # Add legends
+        self.ax.legend(loc="upper left")
+        self.ax2.legend(loc="upper right")
+
+        # Redraw the plot and pause to update the display
         plt.draw()
         plt.pause(0.1)
 

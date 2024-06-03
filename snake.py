@@ -33,15 +33,8 @@ class SnakeGame:
                 self.running = False
 
             if next_move:
-                if self.snake.v != next_move:
-                    self.snake.score += 1
-                # see if snake is colliding with self
-
-                # if self.snake.p + next_move == self.snake.body[1]:
-                #     message = "Game over! You cannot move in the opposite direction!"
-                #     # self.snake.remove_score()
-                #     self.running = False
-                # else:
+                # if self.snake.v != next_move:
+                #     self.snake.score += 1
 
                 self.snake.v = next_move
                 self.snake.move()

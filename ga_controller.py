@@ -27,6 +27,7 @@ class GAController(GameController):
             self.clock = pygame.time.Clock()
             self.color_snake_head = (0, 255, 0)
             self.color_food = (255, 0, 0)
+            self.font = pygame.font.Font(None, 36)
         self.action_space = (
             Vector(0, 1),
             Vector(0, -1),
@@ -35,13 +36,19 @@ class GAController(GameController):
         )
         self.steps = 0
 
+    def draw_score(self):
+        score_text = f"Score: {self.game.snake.score}"  # Assuming `game.score` tracks the current score
+        score_surf = self.font.render(score_text, True, (255, 255, 255))  # White color
+        score_rect = score_surf.get_rect()
+        score_rect.topleft = (10, 10)  # Position at top-left corner
+        self.screen.blit(score_surf, score_rect)
+
     @property
     def score(self) -> int:
         return self.game.snake.score
 
     def calc_fitness(self) -> float:
-        score = self.score * 100 if self.score >= 1 else 0
-        return score / (np.log(self.steps + 1)) - 0.01 * self.steps
+        return self.score /(self.steps + 1)
 
     def update(self) -> Vector:
 
@@ -81,6 +88,7 @@ class GAController(GameController):
         try:
             if self.display:
                 self.screen.fill("black")
+                self.draw_score()
                 for i, p in enumerate(self.game.snake.body):
                     pygame.draw.rect(
                         self.screen,
@@ -91,7 +99,7 @@ class GAController(GameController):
                     self.screen, self.color_food, self.block(self.game.food.p)
                 )
                 pygame.display.flip()
-                self.clock.tick(24)
+                self.clock.tick(48)
 
             self.steps += 1
         except Exception as e:
