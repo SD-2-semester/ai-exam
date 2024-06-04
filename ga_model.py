@@ -43,7 +43,7 @@ class SimpleModel:
             if (
                 i < len(self.DNA) - 1
             ):  # Apply activation function to all but the last layer
-                x = tanh(x)
+                x = relu(x)
         return softmax(x)  # Apply softmax to the output layer
 
     def action(self, obs):
